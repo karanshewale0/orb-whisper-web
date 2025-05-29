@@ -24,6 +24,7 @@ interface VoiceOrbPanelProps {
   onTextInputChange: (value: string) => void;
   onSendMessage: () => void;
   onFileUpload: () => void;
+  onMessagesUpdate?: (messages: Message[]) => void;
 }
 
 export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
@@ -38,7 +39,8 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
   onToggleRecording,
   onTextInputChange,
   onSendMessage,
-  onFileUpload
+  onFileUpload,
+  onMessagesUpdate
 }) => {
   return (
     <>
@@ -108,6 +110,7 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                   isRecording={isRecording}
                   messages={messages}
                   onToggleRecording={onToggleRecording}
+                  onMessagesUpdate={onMessagesUpdate || (() => {})}
                 />
               )}
 
@@ -118,10 +121,16 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                   onTextInputChange={onTextInputChange}
                   onSendMessage={onSendMessage}
                   onFileUpload={onFileUpload}
+                  onMessagesUpdate={onMessagesUpdate}
                 />
               )}
 
-              {mode === 'meeting' && <MeetingMode />}
+              {mode === 'meeting' && (
+                <MeetingMode 
+                  messages={messages}
+                  onMessagesUpdate={onMessagesUpdate}
+                />
+              )}
             </div>
 
             {/* Back button for modes */}

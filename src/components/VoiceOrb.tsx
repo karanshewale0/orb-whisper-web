@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { FloatingOrb } from './voice-orb/FloatingOrb';
 import { VoiceOrbPanel } from './voice-orb/VoiceOrbPanel';
 import { Mode, Message, Position, VoiceOrbState } from './voice-orb/types';
+import { isConfigured } from '@/utils/elevenLabsConfig';
 
 const VoiceOrb = () => {
   const [state, setState] = useState<VoiceOrbState>({
@@ -22,6 +22,13 @@ const VoiceOrb = () => {
   const dragThreshold = 5;
   const orbSize = 64;
   const { toast } = useToast();
+
+  // Check configuration on mount
+  useEffect(() => {
+    if (!isConfigured()) {
+      console.warn('ElevenLabs agent IDs not configured. Voice features will use demo mode.');
+    }
+  }, []);
 
   // Initialize position
   useEffect(() => {
@@ -108,47 +115,28 @@ const VoiceOrb = () => {
 
   const selectMode = (selectedMode: Mode) => {
     setState(prev => ({ ...prev, mode: selectedMode }));
+    
     if (selectedMode === 'voice' || selectedMode === 'meeting') {
-      toast({
-        title: "Voice Mode Selected",
-        description: "Note: This is a demo. In production, this would connect to ElevenLabs API.",
-      });
+      if (!isConfigured()) {
+        toast({
+          title: "Demo Mode",
+          description: "ElevenLabs agents not configured. Configure environment variables for production use.",
+        });
+      } else {
+        toast({
+          title: "Voice Mode Selected",
+          description: "Connecting to ElevenLabs Conversational AI...",
+        });
+      }
     }
   };
 
   const toggleRecording = () => {
-    const newIsRecording = !state.isRecording;
-    setState(prev => ({ ...prev, isRecording: newIsRecording }));
-    
-    if (newIsRecording) {
-      toast({
-        title: "Recording Started",
-        description: "Speak now... (Demo mode)",
-      });
-    } else {
-      toast({
-        title: "Processing...",
-        description: "Converting speech to text and generating response",
-      });
-      
-      setTimeout(() => {
-        const userMessage: Message = {
-          id: Date.now().toString(),
-          type: 'user',
-          content: '[Demo] Voice input received',
-          timestamp: new Date()
-        };
-        
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'ai',
-          content: 'Hello! This is a demo of the Kiaan Voice Orb. In production, this would be powered by ElevenLabs Conversational AI with natural voice responses.',
-          timestamp: new Date()
-        };
-        
-        setState(prev => ({ ...prev, messages: [userMessage, aiMessage] }));
-      }, 1000);
-    }
+    setState(prev => ({ ...prev, isRecording: !prev.isRecording }));
+  };
+
+  const handleMessagesUpdate = (messages: Message[]) => {
+    setState(prev => ({ ...prev, messages }));
   };
 
   const sendTextMessage = () => {
@@ -166,23 +154,12 @@ const VoiceOrb = () => {
       messages: [...prev.messages, userMessage],
       textInput: ''
     }));
-    
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: `Thank you for your message: "${userMessage.content}". This is a demo response. In production, this would be processed by advanced AI.`,
-        timestamp: new Date()
-      };
-      
-      setState(prev => ({ ...prev, messages: [...prev.messages, aiMessage] }));
-    }, 1000);
   };
 
   const handleFileUpload = () => {
     toast({
       title: "File Upload",
-      description: "File upload functionality would be implemented here",
+      description: "File upload handled by TextMode component",
     });
   };
 
@@ -191,7 +168,7 @@ const VoiceOrb = () => {
   };
 
   const handleBackToModes = () => {
-    setState(prev => ({ ...prev, mode: null }));
+    setState(prev => ({ ...prev, mode: null, messages: [] }));
   };
 
   if (!state.isOpen) {
@@ -219,6 +196,7 @@ const VoiceOrb = () => {
       onTextInputChange={handleTextInputChange}
       onSendMessage={sendTextMessage}
       onFileUpload={handleFileUpload}
+      onMessagesUpdate={handleMessagesUpdate}
     />
   );
 };
