@@ -6,8 +6,8 @@
 // VITE_ELEVENLABS_MEETING_AGENT_ID=your_meeting_agent_id_here
 
 // Default agent IDs - replace these with your actual ElevenLabs agent IDs
-const DEFAULT_CHAT_AGENT_ID = 'your-elevenlabs-chat-agent-id-here';
-const DEFAULT_MEETING_AGENT_ID = 'your-elevenlabs-meeting-agent-id-here';
+const DEFAULT_CHAT_AGENT_ID = 'agent_01jwdyky9pe9erp7thp0qrt30v';
+const DEFAULT_MEETING_AGENT_ID = 'agent_01jwdyky9pe9erp7thp0qrt30v';
 
 export const ELEVENLABS_AGENTS = {
   chat: import.meta.env.VITE_ELEVENLABS_CHAT_AGENT_ID || DEFAULT_CHAT_AGENT_ID,
