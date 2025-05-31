@@ -1,10 +1,17 @@
 
 // ElevenLabs Agent Configuration
-// In production, these should be stored securely via environment variables or configuration API
+// These agent IDs should be set via environment variables in production
+// For development, you can set them in your .env file as:
+// VITE_ELEVENLABS_CHAT_AGENT_ID=your_chat_agent_id_here
+// VITE_ELEVENLABS_MEETING_AGENT_ID=your_meeting_agent_id_here
+
+// Default agent IDs - replace these with your actual ElevenLabs agent IDs
+const DEFAULT_CHAT_AGENT_ID = 'your-elevenlabs-chat-agent-id-here';
+const DEFAULT_MEETING_AGENT_ID = 'your-elevenlabs-meeting-agent-id-here';
 
 export const ELEVENLABS_AGENTS = {
-  chat: import.meta.env.VITE_ELEVENLABS_CHAT_AGENT_ID || getStoredAgentId('chat') || 'demo-chat-agent',
-  meeting: import.meta.env.VITE_ELEVENLABS_MEETING_AGENT_ID || getStoredAgentId('meeting') || 'demo-meeting-agent'
+  chat: import.meta.env.VITE_ELEVENLABS_CHAT_AGENT_ID || DEFAULT_CHAT_AGENT_ID,
+  meeting: import.meta.env.VITE_ELEVENLABS_MEETING_AGENT_ID || DEFAULT_MEETING_AGENT_ID
 } as const;
 
 export type AgentType = 'chat' | 'meeting';
@@ -12,52 +19,30 @@ export type AgentType = 'chat' | 'meeting';
 // Webhook configuration for text mode
 export const TEXT_WEBHOOK_URL = import.meta.env.VITE_TEXT_WEBHOOK_URL || '/api/text-chat';
 
-// Helper function to get stored agent ID from localStorage
-function getStoredAgentId(agentType: AgentType): string | null {
-  try {
-    return localStorage.getItem(`elevenlabs_${agentType}_agent_id`);
-  } catch {
-    return null;
-  }
-}
-
-// Helper function to store agent ID in localStorage
-export const setAgentId = (agentType: AgentType, agentId: string): void => {
-  try {
-    localStorage.setItem(`elevenlabs_${agentType}_agent_id`, agentId);
-  } catch (error) {
-    console.error('Failed to store agent ID:', error);
-  }
-};
-
-// Helper function to get agent ID (with dynamic lookup)
+// Helper function to get agent ID
 export const getAgentId = (agentType: AgentType): string => {
-  return import.meta.env[`VITE_ELEVENLABS_${agentType.toUpperCase()}_AGENT_ID`] || 
-         getStoredAgentId(agentType) || 
-         ELEVENLABS_AGENTS[agentType];
+  return ELEVENLABS_AGENTS[agentType];
 };
 
-// Helper function to check if agent IDs are configured
+// Helper function to check if agent IDs are configured (not using defaults)
 export const isConfigured = (): boolean => {
-  const chatId = getAgentId('chat');
-  const meetingId = getAgentId('meeting');
-  return Boolean(chatId && chatId !== 'demo-chat-agent' && meetingId && meetingId !== 'demo-meeting-agent');
+  const chatId = ELEVENLABS_AGENTS.chat;
+  const meetingId = ELEVENLABS_AGENTS.meeting;
+  return chatId !== DEFAULT_CHAT_AGENT_ID && meetingId !== DEFAULT_MEETING_AGENT_ID;
 };
 
-// Helper function to get all configuration status
+// Helper function to get configuration status
 export const getConfigStatus = () => {
   return {
     chat: {
       hasEnvVar: Boolean(import.meta.env.VITE_ELEVENLABS_CHAT_AGENT_ID),
-      hasStored: Boolean(getStoredAgentId('chat')),
-      current: getAgentId('chat'),
-      isDemo: getAgentId('chat') === 'demo-chat-agent'
+      current: ELEVENLABS_AGENTS.chat,
+      isDefault: ELEVENLABS_AGENTS.chat === DEFAULT_CHAT_AGENT_ID
     },
     meeting: {
       hasEnvVar: Boolean(import.meta.env.VITE_ELEVENLABS_MEETING_AGENT_ID),
-      hasStored: Boolean(getStoredAgentId('meeting')),
-      current: getAgentId('meeting'),
-      isDemo: getAgentId('meeting') === 'demo-meeting-agent'
+      current: ELEVENLABS_AGENTS.meeting,
+      isDefault: ELEVENLABS_AGENTS.meeting === DEFAULT_MEETING_AGENT_ID
     }
   };
 };

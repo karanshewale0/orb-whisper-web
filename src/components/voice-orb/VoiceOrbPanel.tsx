@@ -152,8 +152,8 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                   </Badge>
                 )}
                 {!isConfigured() && (
-                  <Badge variant="destructive">
-                    Demo Mode
+                  <Badge variant="secondary" className="text-amber-600 border-amber-600">
+                    Default Config
                   </Badge>
                 )}
               </div>
