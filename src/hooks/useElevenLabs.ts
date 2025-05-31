@@ -15,24 +15,30 @@ export const useElevenLabs = ({ agentId, onMessage }: UseElevenLabsProps = {}) =
   const { toast } = useToast();
 
   const conversation = useConversation({
-    onMessage: (message) => {
+    onMessage: (message: any) => {
       console.log('Received message:', message);
       
-      if (message.source === 'assistant' || message.source === 'ai') {
+      // Handle AI/assistant messages
+      if (message.source === 'ai' || message.source === 'assistant') {
         const aiMessage: Message = {
           id: Date.now().toString(),
           type: 'ai',
-          content: message.message,
+          content: message.message || message.text || '',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, aiMessage]);
         onMessage?.(aiMessage);
-      } else if (message.source === 'user') {
-        if (message.is_final) {
+      } 
+      // Handle user messages
+      else if (message.source === 'user' || message.source === 'human') {
+        // Check if message is final (if the property exists)
+        const isFinal = message.is_final !== undefined ? message.is_final : true;
+        
+        if (isFinal) {
           const userMessage: Message = {
             id: Date.now().toString(),
             type: 'user',
-            content: message.message,
+            content: message.message || message.text || '',
             timestamp: new Date()
           };
           setMessages(prev => [...prev, userMessage]);
