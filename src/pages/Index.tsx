@@ -1,181 +1,89 @@
 
 import { useState } from 'react';
-import VoiceOrb from '../components/VoiceOrb';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Code, Download, Globe, Mic, MessageCircle, Video } from 'lucide-react';
+import VoiceOrb from "@/components/VoiceOrb";
+import AdminConfig from "@/components/AdminConfig";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
-const Index = () => {
-  const [showOrb, setShowOrb] = useState(true);
+export default function Index() {
+  const [showConfig, setShowConfig] = useState(false);
 
-  const embedCode = `<script src="https://your-domain.com/kiaan-voice-orb.js"></script>
-<script>
-  KiaanVoiceOrb.init({
-    apiKey: 'your-elevenlabs-api-key',
-    agentId: 'your-agent-id',
-    position: 'bottom-right',
-    theme: 'glassmorphism'
-  });
-</script>`;
+  if (showConfig) {
+    return (
+      <div className="relative">
+        <AdminConfig />
+        <Button
+          onClick={() => setShowConfig(false)}
+          className="fixed top-4 right-4 z-50"
+          variant="outline"
+        >
+          Back to Widget
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
-      {/* Animated background */}
-      <div className="fixed inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full filter blur-3xl animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-48 h-48 bg-blue-500 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/2 w-56 h-56 bg-indigo-500 rounded-full filter blur-3xl animate-pulse delay-500"></div>
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Kiaan Voice Orb
-              </h1>
-              <p className="text-gray-300 mt-2">Advanced Voice AI Widget for Modern Websites</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            Kiaan Voice Orb
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            An intelligent voice and text assistant that integrates seamlessly into any website.
+            Click the floating orb to start interacting!
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div className="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Settings className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Easy Configuration</h3>
+              <p className="text-gray-600 text-sm">
+                Configure your API keys and agent IDs through our intuitive admin panel.
+              </p>
             </div>
+            
+            <div className="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Voice & Text Chat</h3>
+              <p className="text-gray-600 text-sm">
+                Supports both voice conversations via ElevenLabs and text chat via OpenAI or webhooks.
+              </p>
+            </div>
+            
+            <div className="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Draggable Interface</h3>
+              <p className="text-gray-600 text-sm">
+                Floating orb that can be positioned anywhere on the screen for optimal user experience.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-12">
             <Button 
-              onClick={() => setShowOrb(!showOrb)}
-              variant="outline"
-              className="bg-white/10 border-white/20 hover:bg-white/20"
+              onClick={() => setShowConfig(true)}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
             >
-              {showOrb ? 'Hide Orb' : 'Show Orb'}
+              <Settings className="w-4 h-4 mr-2" />
+              Open Configuration Panel
             </Button>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto space-y-12">
-          
-          {/* Hero Section */}
-          <section className="text-center py-12">
-            <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-              Voice AI Made Simple
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-              Integrate powerful conversational AI into any website with just a few lines of code. 
-              Features voice chat, text messaging, and meeting modes with stunning glassmorphism design.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Badge variant="outline" className="px-4 py-2 text-lg border-purple-400 text-purple-300">
-                <Mic className="w-4 h-4 mr-2" />
-                Voice Chat
-              </Badge>
-              <Badge variant="outline" className="px-4 py-2 text-lg border-blue-400 text-blue-300">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Text Messaging
-              </Badge>
-              <Badge variant="outline" className="px-4 py-2 text-lg border-green-400 text-green-300">
-                <Video className="w-4 h-4 mr-2" />
-                Meeting Mode
-              </Badge>
-            </div>
-          </section>
-
-          {/* Features Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="bg-white/10 border-white/20 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Globe className="w-6 h-6 mr-2 text-purple-400" />
-                  Universal Integration
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-300">
-                <p>Works on any website with simple script tag integration. No complex setup required.</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/10 border-white/20 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Mic className="w-6 h-6 mr-2 text-blue-400" />
-                  ElevenLabs Powered
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-300">
-                <p>Advanced voice AI with natural conversation capabilities and multiple voice options.</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/10 border-white/20 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Download className="w-6 h-6 mr-2 text-green-400" />
-                  Drag & Drop UI
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-300">
-                <p>Floating, draggable interface with smooth animations and glassmorphism effects.</p>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Integration Code */}
-          <section>
-            <Card className="bg-white/5 border-white/10 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white">
-                  <Code className="w-6 h-6 mr-2 text-purple-400" />
-                  Integration Code
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="bg-black/30 p-4 rounded-lg overflow-x-auto">
-                  <code className="text-green-300 text-sm">{embedCode}</code>
-                </pre>
-                <p className="text-gray-400 mt-4 text-sm">
-                  Simply add these script tags to your website and the voice orb will appear automatically.
-                </p>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Demo Instructions */}
-          <section>
-            <Card className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-400/30 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="text-white text-center">
-                  Try the Voice Orb Demo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-300">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                  <div>
-                    <div className="w-12 h-12 bg-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-lg font-bold">1</span>
-                    </div>
-                    <p>Click the floating orb in the bottom-right corner</p>
-                  </div>
-                  <div>
-                    <div className="w-12 h-12 bg-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-lg font-bold">2</span>
-                    </div>
-                    <p>Choose from Voice Chat, Text Chat, or Meeting modes</p>
-                  </div>
-                  <div>
-                    <div className="w-12 h-12 bg-green-500/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-lg font-bold">3</span>
-                    </div>
-                    <p>Experience the AI conversation capabilities</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        </div>
-      </main>
-
-      {/* Voice Orb Widget */}
-      {showOrb && <VoiceOrb />}
+      </div>
+      
+      <VoiceOrb onOpenConfig={() => setShowConfig(true)} />
     </div>
   );
-};
-
-export default Index;
+}

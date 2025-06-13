@@ -1,11 +1,12 @@
-
 import { useState, useRef, useEffect } from 'react';
-import { Mic, MessageCircle, Video, X, Send, Paperclip, MicOff } from 'lucide-react';
+import { Mic, MessageCircle, Video, X, Send, Paperclip, MicOff, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { configService } from '@/services/configService';
+import { openAiService, ChatMessage } from '@/services/openAiService';
 
 type Mode = 'voice' | 'text' | 'meeting' | null;
 
@@ -16,7 +17,11 @@ interface Message {
   timestamp: Date;
 }
 
-const VoiceOrb = () => {
+interface VoiceOrbProps {
+  onOpenConfig?: () => void;
+}
+
+const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -28,7 +33,10 @@ const VoiceOrb = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [textInput, setTextInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
   const orbRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const orbSize = 64;
@@ -129,6 +137,7 @@ const VoiceOrb = () => {
     setMode(null);
     setIsRecording(false);
     setMessages([]);
+    setConversationHistory([]);
     // Restore page scrolling
     document.body.style.overflow = '';
   };
@@ -136,6 +145,19 @@ const VoiceOrb = () => {
   const selectMode = (selectedMode: Mode) => {
     setMode(selectedMode);
     if (selectedMode === 'voice' || selectedMode === 'meeting') {
+      const hasValidConfig = configService.hasValidElevenLabsConfig();
+      if (!hasValidConfig) {
+        toast({
+          title: "Configuration Required",
+          description: "Please configure your ElevenLabs API key and agent IDs first.",
+          action: onOpenConfig ? (
+            <Button variant="outline" size="sm" onClick={onOpenConfig}>
+              Configure
+            </Button>
+          ) : undefined,
+        });
+        return;
+      }
       toast({
         title: "Voice Mode Selected",
         description: "Note: This is a demo. In production, this would connect to ElevenLabs API.",
@@ -176,8 +198,8 @@ const VoiceOrb = () => {
     }
   };
 
-  const sendTextMessage = () => {
-    if (!textInput.trim()) return;
+  const sendTextMessage = async () => {
+    if (!textInput.trim() || isLoading) return;
     
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -188,24 +210,145 @@ const VoiceOrb = () => {
     
     setMessages(prev => [...prev, userMessage]);
     setTextInput('');
+    setIsLoading(true);
     
-    setTimeout(() => {
+    try {
+      const config = configService.getOpenAiConfig();
+      let aiResponse: string;
+      
+      if (config.webhookUrl) {
+        // Use webhook if configured
+        const response = await fetch(config.webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userMessage.content,
+            timestamp: userMessage.timestamp.toISOString()
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Webhook request failed');
+        }
+        
+        const result = await response.json();
+        aiResponse = result.message || result.response || 'No response from webhook';
+      } else {
+        // Use OpenAI API
+        aiResponse = await openAiService.sendMessage(userMessage.content, conversationHistory);
+      }
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: `Thank you for your message: "${userMessage.content}". This is a demo response. In production, this would be processed by advanced AI.`,
+        content: aiResponse,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+      
+      // Update conversation history
+      setConversationHistory(prev => [
+        ...prev,
+        { role: 'user', content: userMessage.content },
+        { role: 'assistant', content: aiResponse }
+      ]);
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: 'Sorry, I encountered an error processing your message. Please check your configuration and try again.',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileUpload = () => {
-    toast({
-      title: "File Upload",
-      description: "File upload functionality would be implemented here",
-    });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    try {
+      setIsLoading(true);
+      
+      const config = configService.getOpenAiConfig();
+      let aiResponse: string;
+      
+      if (config.webhookUrl) {
+        const formData = new FormData();
+        formData.append('message', textInput || 'Files uploaded');
+        files.forEach((file, index) => {
+          formData.append(`file_${index}`, file);
+        });
+        
+        const response = await fetch(config.webhookUrl, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Webhook file upload failed');
+        }
+        
+        const result = await response.json();
+        aiResponse = result.message || result.response || 'Files processed successfully';
+      } else {
+        // Use OpenAI with file descriptions
+        aiResponse = await openAiService.sendMessageWithFiles(
+          textInput || 'Please help me with these files',
+          files,
+          conversationHistory
+        );
+      }
+
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: `${textInput || 'Uploaded files:'} ${files.map(f => f.name).join(', ')}`,
+        timestamp: new Date()
+      };
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: aiResponse,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, userMessage, aiMessage]);
+      setTextInput('');
+      
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to process files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
   };
 
   if (!isOpen) {
@@ -341,14 +484,26 @@ const VoiceOrb = () => {
                   </Badge>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeInterface}
-                className="text-gray-600 hover:bg-gray-100"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center space-x-2">
+                {onOpenConfig && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onOpenConfig}
+                    className="text-gray-600 hover:bg-gray-100"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeInterface}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Content area */}
@@ -471,14 +626,28 @@ const VoiceOrb = () => {
                           </div>
                         ))
                       )}
+                      {isLoading && (
+                        <div className="bg-gray-100 mr-4 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600">AI is thinking...</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Input */}
                     <div className="flex items-center space-x-2 mt-auto">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept=".pdf,.csv,.txt,.jpg,.jpeg,.png,.doc,.docx"
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleFileUpload}
+                        disabled={isLoading}
                         className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                       >
                         <Paperclip className="w-4 h-4" />
@@ -486,13 +655,15 @@ const VoiceOrb = () => {
                       <Input
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendTextMessage()}
+                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendTextMessage()}
                         placeholder="Type your message..."
+                        disabled={isLoading}
                         className="flex-1 bg-white border-gray-300 text-gray-800 placeholder-gray-500"
                       />
                       <Button
                         onClick={sendTextMessage}
                         size="sm"
+                        disabled={isLoading || !textInput.trim()}
                         className="bg-blue-500 hover:bg-blue-600"
                       >
                         <Send className="w-4 h-4" />
@@ -534,7 +705,11 @@ const VoiceOrb = () => {
               <div className="px-6 pb-4 border-t border-gray-200">
                 <Button
                   variant="ghost"
-                  onClick={() => setMode(null)}
+                  onClick={() => {
+                    setMode(null);
+                    setMessages([]);
+                    setConversationHistory([]);
+                  }}
                   className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 mt-4"
                 >
                   ← Back to modes
