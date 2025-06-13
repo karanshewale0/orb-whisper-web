@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Mic, X, Settings } from 'lucide-react';
+import React from 'react';
+import { Mic, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,8 @@ import { ModeSelection } from './ModeSelection';
 import { VoiceMode } from './VoiceMode';
 import { TextMode } from './TextMode';
 import { MeetingMode } from './MeetingMode';
-import { ConfigurationPanel } from './ConfigurationPanel';
 import { panelStyles } from './styles';
 import { Mode, Message } from './types';
-import { isConfigured } from '@/utils/elevenLabsConfig';
 
 interface VoiceOrbPanelProps {
   mode: Mode;
@@ -26,7 +24,6 @@ interface VoiceOrbPanelProps {
   onTextInputChange: (value: string) => void;
   onSendMessage: () => void;
   onFileUpload: () => void;
-  onMessagesUpdate?: (messages: Message[]) => void;
 }
 
 export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
@@ -41,70 +38,8 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
   onToggleRecording,
   onTextInputChange,
   onSendMessage,
-  onFileUpload,
-  onMessagesUpdate
+  onFileUpload
 }) => {
-  const [showConfig, setShowConfig] = useState(false);
-
-  if (showConfig) {
-    return (
-      <>
-        <style>{panelStyles}</style>
-        
-        {/* Dark overlay with blur */}
-        <div 
-          className="fixed inset-0 z-40"
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-          }}
-          onClick={() => setShowConfig(false)}
-        />
-        
-        {/* Configuration panel */}
-        <div
-          className="kiaan-panel fixed z-50"
-          style={{
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80vw',
-            height: '80vh',
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-          }}
-        >
-          <Card className="w-full h-full bg-transparent border-none shadow-none">
-            <CardContent className="p-0 h-full flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-white/20">
-                <div className="flex items-center space-x-2">
-                  <Settings className="w-6 h-6 text-gray-600" />
-                  <span className="text-gray-800 font-medium">Configuration</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowConfig(false)}
-                  className="text-gray-600 hover:bg-gray-100"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Content area */}
-              <div className="flex-1 overflow-auto">
-                <ConfigurationPanel onClose={() => setShowConfig(false)} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <style>{panelStyles}</style>
@@ -151,30 +86,15 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                     Connected
                   </Badge>
                 )}
-                {!isConfigured() && (
-                  <Badge variant="secondary" className="text-amber-600 border-amber-600">
-                    Default Config
-                  </Badge>
-                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowConfig(true)}
-                  className="text-gray-600 hover:bg-gray-100"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="text-gray-600 hover:bg-gray-100"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
 
             {/* Content area */}
@@ -188,7 +108,6 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                   isRecording={isRecording}
                   messages={messages}
                   onToggleRecording={onToggleRecording}
-                  onMessagesUpdate={onMessagesUpdate || (() => {})}
                 />
               )}
 
@@ -199,16 +118,10 @@ export const VoiceOrbPanel: React.FC<VoiceOrbPanelProps> = ({
                   onTextInputChange={onTextInputChange}
                   onSendMessage={onSendMessage}
                   onFileUpload={onFileUpload}
-                  onMessagesUpdate={onMessagesUpdate}
                 />
               )}
 
-              {mode === 'meeting' && (
-                <MeetingMode 
-                  messages={messages}
-                  onMessagesUpdate={onMessagesUpdate}
-                />
-              )}
+              {mode === 'meeting' && <MeetingMode />}
             </div>
 
             {/* Back button for modes */}
