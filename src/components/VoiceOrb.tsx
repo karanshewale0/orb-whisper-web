@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { configService } from '@/services/configService';
 import { openAiService, ChatMessage } from '@/services/openAiService';
+import { pdfService } from '@/services/pdfService';
+import MeetingRecorder from '@/components/MeetingRecorder';
 
 type Mode = 'voice' | 'text' | 'meeting' | null;
 
@@ -351,6 +353,16 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
     }
   };
 
+  const handleMeetingMessage = (speaker: 'user' | 'ai', content: string) => {
+    const message: Message = {
+      id: Date.now().toString(),
+      type: speaker,
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, message]);
+  };
+
   if (!isOpen) {
     return (
       <>
@@ -675,27 +687,30 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
 
               {/* Meeting Mode */}
               {mode === 'meeting' && (
-                <div className="p-6 text-center">
-                  <Video className="w-16 h-16 mx-auto mb-4 text-green-600" />
-                  <h3 className="text-gray-800 text-lg font-medium mb-2">Meeting Assistant</h3>
-                  <p className="text-gray-600 text-sm mb-6">
-                    AI-powered meeting assistant with transcription, summarization, and action item tracking.
-                  </p>
+                <div className="p-6">
+                  <MeetingRecorder onAddMessage={handleMeetingMessage} />
                   
-                  <div className="space-y-3">
-                    <Button className="w-full bg-green-500 hover:bg-green-600">
-                      Start Meeting Recording
-                    </Button>
-                    <Button variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
-                      Join Existing Meeting
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500">
-                      Demo Mode: In production, this would integrate with meeting platforms like Zoom, Teams, or Google Meet.
-                    </p>
-                  </div>
+                  {/* Messages for meeting mode */}
+                  {messages.length > 0 && (
+                    <div className="mt-6 space-y-3 max-h-40 overflow-y-auto">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Live Conversation</h4>
+                      {messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 rounded-lg ${
+                            message.type === 'user'
+                              ? 'bg-green-100 ml-4 text-gray-800'
+                              : 'bg-blue-100 mr-4 text-gray-800'
+                          }`}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {message.timestamp.toLocaleTimeString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
