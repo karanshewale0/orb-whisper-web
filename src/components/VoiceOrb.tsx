@@ -211,7 +211,7 @@ const VoiceOrb = () => {
   if (!isOpen) {
     return (
       <>
-        <style jsx>{`
+        <style>{`
           @keyframes pulse-ring {
             0% {
               transform: scale(0.8);
@@ -274,7 +274,7 @@ const VoiceOrb = () => {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @keyframes panel-enter {
           from {
             opacity: 0;
