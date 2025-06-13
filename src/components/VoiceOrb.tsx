@@ -33,7 +33,7 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
         variant: "destructive",
       });
     } else {
-      recognitionRef.current = new webkitSpeechRecognition();
+      recognitionRef.current = new window.webkitSpeechRecognition();
       const recognition = recognitionRef.current;
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -161,7 +161,7 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
     }
   };
 
-  const handleAddMessage = (speaker: 'user' | 'ai', content: string) => {
+  const handleAddMessage = (speaker: 'user' | 'assistant', content: string) => {
     // Add message to chat history for display
     setMessages(prev => [...prev, { role: speaker, content }]);
   };
