@@ -33,7 +33,7 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
         variant: "destructive",
       });
     } else {
-      recognitionRef.current = new webkitSpeechRecognition();
+      recognitionRef.current = new window.webkitSpeechRecognition();
       const recognition = recognitionRef.current;
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -161,8 +161,7 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
     }
   };
 
-  const handleAddMessage = (speaker: 'user' | 'ai', content: string) => {
-    // Add message to chat history for display
+  const handleAddMessage = (speaker: 'user' | 'assistant', content: string) => {
     setMessages(prev => [...prev, { role: speaker, content }]);
   };
 
@@ -242,7 +241,6 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
             Start a meeting session with AI assistance for note-taking and conversation management.
           </p>
           
-          {/* Original Meeting Controls */}
           <div className="space-y-4">
             {!isConnected ? (
               <Button 
@@ -279,7 +277,6 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
           </div>
         </div>
 
-        {/* Messages Display */}
         {messages.length > 0 && (
           <div className="mt-6 space-y-3 max-h-60 overflow-y-auto">
             <h4 className="font-medium text-gray-700">Conversation:</h4>
@@ -302,7 +299,6 @@ const VoiceOrb = ({ onOpenConfig }: VoiceOrbProps) => {
         )}
       </div>
 
-      {/* PDF Recording Functionality */}
       <div className="border-t bg-gray-50 p-4">
         <MeetingRecorder onAddMessage={handleAddMessage} />
       </div>

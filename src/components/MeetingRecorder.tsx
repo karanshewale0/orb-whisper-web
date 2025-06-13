@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { pdfService, ConversationEntry } from '@/services/pdfService';
 import { useToast } from '@/hooks/use-toast';
 
 interface MeetingRecorderProps {
-  onAddMessage?: (speaker: 'user' | 'ai', content: string) => void;
+  onAddMessage?: (speaker: 'user' | 'assistant', content: string) => void;
 }
 
 const MeetingRecorder = ({ onAddMessage }: MeetingRecorderProps) => {
@@ -89,13 +88,13 @@ const MeetingRecorder = ({ onAddMessage }: MeetingRecorderProps) => {
     if (isRecording && onAddMessage) {
       const demoMessages = [
         { speaker: 'user' as const, content: 'Hello everyone, thanks for joining today\'s meeting.' },
-        { speaker: 'ai' as const, content: 'Good morning! I\'m here to assist with note-taking and action items for this meeting.' },
+        { speaker: 'assistant' as const, content: 'Good morning! I\'m here to assist with note-taking and action items for this meeting.' },
       ];
 
       setTimeout(() => {
         demoMessages.forEach((msg, index) => {
           setTimeout(() => {
-            pdfService.addEntry(msg.speaker, msg.content);
+            pdfService.addEntry(msg.speaker === 'assistant' ? 'ai' : msg.speaker, msg.content);
             setConversation(pdfService.getConversation());
             onAddMessage(msg.speaker, msg.content);
           }, index * 2000);
